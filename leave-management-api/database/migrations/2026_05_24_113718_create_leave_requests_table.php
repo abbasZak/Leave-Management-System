@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('leave_requests', function (Blueprint $table) {
             $table->id();
+            $table->foreignId("user_id")->constrained("users")->onCascade("cascade");
+            $table->enum('leave_type', ['annual', 'sick', 'casual']);
+            $table->date("start-date");
+            $table->date("end_date");
+            $table->text("reason");
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('admin_comment')->nullable();
             $table->timestamps();
         });
     }
