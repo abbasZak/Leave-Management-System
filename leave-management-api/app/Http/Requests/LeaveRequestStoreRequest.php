@@ -1,4 +1,3 @@
-// app/Http/Requests/LeaveRequestStoreRequest.php
 <?php
 
 namespace App\Http\Requests;
@@ -9,7 +8,6 @@ class LeaveRequestStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Anyone logged in can create a request
         return auth()->check();
     }
 
@@ -27,7 +25,11 @@ class LeaveRequestStoreRequest extends FormRequest
     {
         return [
             'end_date.after_or_equal' => 'End date must be after or equal to start date',
-            'reason.min' => 'Please provide a more detailed reason (min 10 characters)',
+            'reason.min' => 'Please provide a more detailed reason (minimum 10 characters)',
+            'reason.required' => 'Please provide a reason for your leave request',
+            'leave_type.required' => 'Please select a leave type',
+            'start_date.required' => 'Please select a start date',
+            'end_date.required' => 'Please select an end date',
         ];
     }
 }

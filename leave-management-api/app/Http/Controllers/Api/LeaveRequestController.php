@@ -1,4 +1,3 @@
-// app/Http/Controllers/Api/LeaveRequestController.php
 <?php
 
 namespace App\Http\Controllers\Api;
@@ -83,6 +82,24 @@ class LeaveRequestController extends Controller
         return new LeaveRequestResource($leaveRequest);
     }
 
+    // Add this method to your LeaveRequestController class
+public function adminDashboard(Request $request)
+{
+    // Only managers can access this
+    if (!$request->user()->isManager()) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+    
+    $stats = [
+        'total_employees' => \App\Models\User::where('role', 'employee')->count(),
+        'pending_requests' => LeaveRequest::where('status', 'pending')->count(),
+        'approved_requests' => LeaveRequest::where('status', 'approved')->count(),
+        'rejected_requests' => LeaveRequest::where('status', 'rejected')->count(),
+    ];
+    
+    return response()->json($stats);
+}
+
     // DELETE /leave-requests/{id}
     public function destroy(Request $request, $id)
     {
@@ -140,34 +157,31 @@ class LeaveRequestController extends Controller
         return new LeaveRequestResource($leaveRequest);
     }
 
-    // Add to LeaveRequestController.php
+    // Dashboard stats for employees
 public function dashboard(Request $request)
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
+    
+    if ($user->role === 'employee') {
+        // Employee dashboard stats
+        $leaveRequests = LeaveRequest::where('user_id', $user->id);
         
-        if ($user->isEmployee()) {
-            // Employee dashboard stats
-            $stats = [
-                'total_taken' => LeaveRequest::where('user_id', $user->id)
-                    ->where('status', 'approved')
-                    ->sum('days'),
-                'pending' => LeaveRequest::where('user_id', $user->id)
-                    ->where('status', 'pending')->count(),
-                'approved' => LeaveRequest::where('user_id', $user->id)
-                    ->where('status', 'approved')->count(),
-                'rejected' => LeaveRequest::where('user_id', $user->id)
-                    ->where('status', 'rejected')->count(),
-            ];
-        } else {
-            // Manager dashboard stats
-            $stats = [
-                'total_employees' => User::where('role', 'employee')->count(),
-                'pending_approvals' => LeaveRequest::where('status', 'pending')->count(),
-                'approved_leaves' => LeaveRequest::where('status', 'approved')->count(),
-                'rejected_leaves' => LeaveRequest::where('status', 'rejected')->count(),
-            ];
-        }
-        
+        $stats = [
+            'total_taken' => (clone $leaveRequests)->where('status', 'approved')->sum('days'),
+            'pending' => (clone $leaveRequests)->where('status', 'pending')->count(),
+            'approved' => (clone $leaveRequests)->where('status', 'approved')->count(),
+            'rejected' => (clone $leaveRequests)->where('status', 'rejected')->count(),
+        ];
+    } else {
+        // Manager dashboard stats
+        $stats = [
+            'total_employees' => User::where('role', 'employee')->count(),
+            'pending_approvals' => LeaveRequest::where('status', 'pending')->count(),
+            'approved_leaves' => LeaveRequest::where('status', 'approved')->count(),
+            'rejected_leaves' => LeaveRequest::where('status', 'rejected')->count(),
+        ];
+    }
+    
         return response()->json($stats);
     }
 }
