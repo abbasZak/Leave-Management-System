@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId("user_id")->constrained("users")->onCascade("cascade");
             $table->enum('leave_type', ['annual', 'sick', 'casual']);
-            $table->date("start-date");
+            $table->date("start_date");
             $table->date("end_date");
             $table->text("reason");
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
